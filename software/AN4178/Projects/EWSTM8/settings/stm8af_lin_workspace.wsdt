@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<Workspace>
+  <ConfigDictionary>
+    
+    
+    
+  <CurrentConfigs><Project>stm8af_lin_slave/Debug</Project><Project>stm8af_lin_master/Debug</Project></CurrentConfigs><CurrentProj>stm8af_lin_master</CurrentProj><OverviewSelected>1</OverviewSelected></ConfigDictionary>
+  <Desktop>
+    <Static>
+      <Workspace>
+        <ColumnWidths>
+          
+          
+          
+          
+        <Column0>298</Column0><Column1>27</Column1><Column2>27</Column2><Column3>27</Column3></ColumnWidths>
+      </Workspace>
+      <Build>
+        
+        
+        
+        
+      <ColumnWidth0>20</ColumnWidth0><ColumnWidth1>1155</ColumnWidth1><ColumnWidth2>308</ColumnWidth2><ColumnWidth3>0</ColumnWidth3></Build>
+    <TerminalIO/><Debug-Log><ColumnWidth0>19</ColumnWidth0><ColumnWidth1>1542</ColumnWidth1></Debug-Log><Find-in-Files><ColumnWidth0>960</ColumnWidth0><ColumnWidth1>82</ColumnWidth1><ColumnWidth2>994</ColumnWidth2></Find-in-Files></Static>
+    <Windows>
+      
+      
+    <Wnd2>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-23723-539</Identity>
+            <TabName>Workspace</TabName>
+            <Factory>Workspace</Factory>
+            <Session>
+              
+            <NodeDict><ExpandedNode>&lt;ws></ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave</ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave/STM8S_StdPeriph_Driver</ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave/STM8S_StdPeriph_Driver/inc</ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave/STM8S_StdPeriph_Driver/src</ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave/User</ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave/User/inc</ExpandedNode><ExpandedNode>&lt;ws>/stm8af_lin_slave/User/src</ExpandedNode></NodeDict></Session>
+          </Tab>
+        </Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd2><Wnd3>
+        <Tabs>
+          <Tab>
+            <Identity>TabID-1181-553</Identity>
+            <TabName>Build</TabName>
+            <Factory>Build</Factory>
+            <Session/>
+          </Tab>
+        <Tab><Identity>TabID-23706-24548</Identity><TabName>Debug Log</TabName><Factory>Debug-Log</Factory><Session/></Tab><Tab><Identity>TabID-30379-25512</Identity><TabName>Find in Files</TabName><Factory>Find-in-Files</Factory><Session/></Tab></Tabs>
+        
+      <SelectedTab>0</SelectedTab></Wnd3></Windows>
+    <Editor>
+      
+      
+      
+      
+    <Pane><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_master\src\appli.c</Filename><XPos>0</XPos><YPos>91</YPos><SelStart>4412</SelStart><SelEnd>4412</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_master\src\lin.c</Filename><XPos>0</XPos><YPos>108</YPos><SelStart>3649</SelStart><SelEnd>3649</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_Slave\src\lin.c</Filename><XPos>0</XPos><YPos>90</YPos><SelStart>3212</SelStart><SelEnd>3212</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_master\src\main.c</Filename><XPos>0</XPos><YPos>141</YPos><SelStart>4694</SelStart><SelEnd>4694</SelEnd></Tab><ActiveTab>3</ActiveTab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_slave\src\appli.c</Filename><XPos>0</XPos><YPos>90</YPos><SelStart>4249</SelStart><SelEnd>4249</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_Slave\src\stm8s_it.c</Filename><XPos>0</XPos><YPos>498</YPos><SelStart>13455</SelStart><SelEnd>13455</SelEnd></Tab><Tab><Factory>TextEditor</Factory><Filename>$WS_DIR$\..\STM8AF_LIN_slave\src\main.c</Filename><XPos>0</XPos><YPos>60</YPos><SelStart>2742</SelStart><SelEnd>2742</SelEnd></Tab></Pane><ActivePane>0</ActivePane><Sizes><Pane><X>1000000</X><Y>1000000</Y></Pane></Sizes><SplitMode>1</SplitMode></Editor>
+    <Positions>
+      
+      
+      
+      
+      
+    <Top><Row0><Sizes><Toolbar-0103e1c0><key>iaridepm.enu1</key></Toolbar-0103e1c0></Sizes></Row0><Row1><Sizes/></Row1></Top><Left><Row0><Sizes><Wnd2><Rect><Top>-2</Top><Left>-2</Left><Bottom>633</Bottom><Right>389</Right><x>-2</x><y>-2</y><xscreen>210</xscreen><yscreen>248</yscreen><sizeHorzCX>125000</sizeHorzCX><sizeHorzCY>253579</sizeHorzCY><sizeVertCX>232738</sizeVertCX><sizeVertCY>649284</sizeVertCY></Rect></Wnd2></Sizes></Row0></Left><Right><Row0><Sizes/></Row0></Right><Bottom><Row0><Sizes><Wnd3><Rect><Top>-2</Top><Left>-2</Left><Bottom>300</Bottom><Right>1682</Right><x>-2</x><y>-2</y><xscreen>1684</xscreen><yscreen>302</yscreen><sizeHorzCX>1002381</sizeHorzCX><sizeHorzCY>308793</sizeHorzCY><sizeVertCX>125000</sizeVertCX><sizeVertCY>253579</sizeVertCY></Rect></Wnd3></Sizes></Row0></Bottom><Float><Sizes/></Float></Positions>
+  </Desktop>
+</Workspace>
+
+

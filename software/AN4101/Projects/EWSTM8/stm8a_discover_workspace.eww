@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>
+  <project>
+    <path>$WS_DIR$\..\STM8AF_Discover\EWSTM8\stm8af_discover.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\..\STM8AL_Discover\EWSTM8\stm8al_discover.ewp</path>
+  </project>
+  <batchBuild/>
+</workspace>
+
+

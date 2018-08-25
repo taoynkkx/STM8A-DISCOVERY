@@ -1,0 +1,1857 @@
+RCSTM8 COMPILER V2.44.12.199,  STM8S_IT           11/13/12  11:08:09
+
+QCW(0x009A3FE0)
+
+RCSTM8 COMPILER V2.44.12.199, COMPILATION OF MODULE STM8S_IT  
+OBJECT MODULE PLACED IN Debug\stm8s_it.o
+COMPILER INVOKED BY: OBJECT(Debug\stm8s_it.o) PIN(C:\Raisonance\Ride\inc\STM8) PIN(C:\Raisonance\Ride\inc\ST7) PIN(C:\Raisonance\Ride\inc) WRV(0) STM8(SMALL) DEBUG DGC(data) AUTO OT(7,SIZE) PR(Debug\stm8s_it.lst) CD CO SB INITSTATICVAR LAOB PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc) DEFINE(STM8AF52Ax) 
+
+stmt level    source
+   1          /**
+   2            ******************************************************************************
+   3            * @file    stm8s_it.c
+   4            * @author  MCD Application Team
+   5            * @version V1.0.0
+   6            * @date    12-Sept-2012
+   7            * @brief   STM8AF demo / interrupt routines
+   8            ******************************************************************************
+   9            * @attention
+  10            *
+  11            * <h2><center>&copy; COPYRIGHT 2012 STMicroelectronics</center></h2>
+  12            *
+  13            * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  14            * You may not use this file except in compliance with the License.
+  15            * You may obtain a copy of the License at:
+  16            *
+  17            *        http://www.st.com/software_license_agreement_liberty_v2
+  18            *
+  19            * Unless required by applicable law or agreed to in writing, software
+  20            * distributed under the License is distributed on an "AS IS" BASIS,
+  21            * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  22            * See the License for the specific language governing permissions and
+  23            * limitations under the License.
+  24            *
+  25            ******************************************************************************
+  26            */
+  27          
+  28          /* Includes ------------------------------------------------------------------*/
+  29          #include "stm8s_it.h"
+  30          #include "main.h"
+  31          
+  32          /* External variables --------------------------------------------------------*/
+  33          extern bool UserButton1;
+  34          extern bool UserButton2;
+  35          extern uint8_t UART3_SR_Buf;
+  36          extern uint8_t UART3Data;
+  37          extern uint8_t ReceptionError;
+  38          extern bool ReceptionEnable;
+  39          extern bool LINSlave;
+  40          
+  41          /* External functions --------------------------------------------------------*/
+  42          extern void SetLINTimebaseTick(void);
+  43          extern void SetAppliTimebaseTick(void);
+  44          extern void TimingDelay_Decrement(void);
+  45          extern void WdgAutoDecrement(void);
+  46          
+  47          extern uint8_t DataReceived; /* Flag to indicate data reception on RX pin (RXNE) */
+  48          extern uint8_t HeaderReceived; /* Flag to indicate Break reception on RX pin (LHDF) */
+  49          extern uint8_t BreakReceived; /* Flag to indicate Break reception on RX pin (LBDF) */
+  50          extern uint8_t IdentifierParityError;
+  51          extern uint8_t LINReceptionTimeoutValue;
+  52          extern bool LINReceptionTimeout;
+  53          extern void UART3_BDIE (void);
+  54          
+  55          /* Private typedef -----------------------------------------------------------*/
+  56          
+  57          /* Private define ------------------------------------------------------------*/
+  58          #define APPLI_TASK_40MS 39
+  59          
+  60          /* Private macro -------------------------------------------------------------*/
+  61          
+  62          /* Private variables ---------------------------------------------------------*/
+  63          static uint8_t AppliTick = 0;
+  64          
+  65          /* Private function prototypes -----------------------------------------------*/
+  66          
+  67          /* Private functions ---------------------------------------------------------*/
+  68          
+  69          #ifdef _COSMIC_
+              /**
+                * @brief  Dummy interrupt routine
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(NonHandledInterrupt, 25)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              #endif /*_COSMIC_*/
+  82          
+  83          /**
+  84            * @brief  TRAP interrupt routine
+  85            * @param  None
+  86            * @retval None
+  87            */
+  88          INTERRUPT_HANDLER_TRAP(TRAP_IRQHandler)
+  89          {
+  90   1        /* In order to detect unexpected events during development,
+  91   1           it is recommended to set a breakpoint on the following instruction.
+  92   1        */
+  93   1      }
+  94          /**
+  95            * @brief  Top Level Interrupt routine
+  96            * @param  None
+  97            * @retval None
+  98            */
+  99          INTERRUPT_HANDLER(TLI_IRQHandler, 0)
+ 100          {
+ 101   1        /* In order to detect unexpected events during development,
+ 102   1           it is recommended to set a breakpoint on the following instruction.
+ 103   1        */
+ 104   1      }
+ 105          
+ 106          /**
+ 107            * @brief  Auto Wake Up Interrupt routine
+ 108            * @param  None
+ 109            * @retval None
+ 110            */
+ 111          INTERRUPT_HANDLER(AWU_IRQHandler, 1)
+ 112          {
+ 113   1        /* In order to detect unexpected events during development,
+ 114   1           it is recommended to set a breakpoint on the following instruction.
+ 115   1        */
+ 116   1      }
+ 117          
+ 118          /**
+ 119            * @brief  Clock Controller Interrupt routine
+ 120            * @param  None
+ 121            * @retval None
+ 122            */
+ 123          INTERRUPT_HANDLER(CLK_IRQHandler, 2)
+ 124          {
+ 125   1        /* In order to detect unexpected events during development,
+ 126   1           it is recommended to set a breakpoint on the following instruction.
+ 127   1        */
+ 128   1      }
+ 129          
+ 130          /**
+ 131            * @brief  External Interrupt PORTA Interrupt routine
+ 132            * @param  None
+ 133            * @retval None
+ 134            */
+ 135          INTERRUPT_HANDLER(EXTI_PORTA_IRQHandler, 3)
+ 136          {
+ 137   1        /* In order to detect unexpected events during development,
+ 138   1           it is recommended to set a breakpoint on the following instruction.
+ 139   1        */
+ 140   1      }
+ 141          
+ 142          /**
+ 143            * @brief  External Interrupt PORTB Interrupt routine
+ 144            * @param  None
+ 145            * @retval None
+ 146            */
+ 147          INTERRUPT_HANDLER(EXTI_PORTB_IRQHandler, 4)
+ 148          {
+ 149   1        /* In order to detect unexpected events during development,
+ 150   1           it is recommended to set a breakpoint on the following instruction.
+ 151   1        */
+ 152   1      }
+ 153          
+ 154          /**
+ 155            * @brief  External Interrupt PORTC Interrupt routine
+ 156            * @param  None
+ 157            * @retval None
+ 158            */
+ 159          INTERRUPT_HANDLER(EXTI_PORTC_IRQHandler, 5)
+ 160          {
+ 161   1        /* In order to detect unexpected events during development,
+ 162   1           it is recommended to set a breakpoint on the following instruction.
+ 163   1        */
+ 164   1      }
+ 165          
+ 166          /**
+ 167            * @brief  External Interrupt PORTD Interrupt routine
+ 168            * @param  None
+ 169            * @retval None
+ 170            */
+ 171          INTERRUPT_HANDLER(EXTI_PORTD_IRQHandler, 6)
+ 172          {
+ 173   1        /* In order to detect unexpected events during development,
+ 174   1           it is recommended to set a breakpoint on the following instruction.
+ 175   1        */
+ 176   1      }
+ 177          
+ 178          /**
+ 179            * @brief  External Interrupt PORTE Interrupt routine
+ 180            * @param  None
+ 181            * @retval None
+ 182            */
+ 183          INTERRUPT_HANDLER(EXTI_PORTE_IRQHandler, 7)
+ 184          {
+ 185   1      
+ 186   1        if (GPIO_ReadInputPin(GPIOE, GPIO_PIN_2) == 0) UserButton1 = TRUE;
+ 187   1        if (GPIO_ReadInputPin(GPIOE, GPIO_PIN_1) == 0) UserButton2 = TRUE;
+ 188   1      
+ 189   1      }
+ 190          #ifdef STM8S903
+              /**
+                * @brief  External Interrupt PORTF Interrupt routine
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(EXTI_PORTF_IRQHandler, 8)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              #endif /*STM8S903*/
+ 203          
+ 204          #if defined (STM8S208) || defined (STM8AF52Ax)
+ 205          /**
+ 206            * @brief CAN RX Interrupt routine.
+ 207            * @param  None
+ 208            * @retval None
+ 209            */
+ 210          INTERRUPT_HANDLER(CAN_RX_IRQHandler, 8)
+ 211          {
+ 212   1        /* In order to detect unexpected events during development,
+ 213   1           it is recommended to set a breakpoint on the following instruction.
+ 214   1        */
+ 215   1      }
+ 216          
+ 217          /**
+ 218            * @brief  CAN TX Interrupt routine
+ 219            * @param  None
+ 220            * @retval None
+ 221            */
+ 222          INTERRUPT_HANDLER(CAN_TX_IRQHandler, 9)
+ 223          {
+ 224   1        /* In order to detect unexpected events during development,
+ 225   1           it is recommended to set a breakpoint on the following instruction.
+ 226   1        */
+ 227   1      }
+ 228          #endif /*STM8S208 || STM8AF52Ax */
+ 229          
+ 230          /**
+ 231            * @brief  SPI Interrupt routine
+ 232            * @param  None
+ 233            * @retval None
+ 234            */
+ 235          INTERRUPT_HANDLER(SPI_IRQHandler, 10)
+ 236          {
+ 237   1        /* In order to detect unexpected events during development,
+ 238   1           it is recommended to set a breakpoint on the following instruction.
+ 239   1        */
+ 240   1      }
+ 241          
+ 242          /**
+ 243            * @brief  Timer1 Update/Overflow/Trigger/Break Interrupt routine
+ 244            * @param  None
+ 245            * @retval None
+ 246            */
+ 247          INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_BRK_IRQHandler, 11)
+ 248          {
+ 249   1        /* In order to detect unexpected events during development,
+ 250   1           it is recommended to set a breakpoint on the following instruction.
+ 251   1        */
+ 252   1      }
+ 253          
+ 254          /**
+ 255            * @brief  Timer1 Capture/Compare Interrupt routine
+ 256            * @param  None
+ 257            * @retval None
+ 258            */
+ 259          INTERRUPT_HANDLER(TIM1_CAP_COM_IRQHandler, 12)
+ 260          {
+ 261   1        /* In order to detect unexpected events during development,
+ 262   1           it is recommended to set a breakpoint on the following instruction.
+ 263   1        */
+ 264   1      }
+ 265          
+ 266          #ifdef STM8S903
+              /**
+                * @brief  Timer5 Update/Overflow/Break/Trigger Interrupt routine
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(TIM5_UPD_OVF_BRK_TRG_IRQHandler, 13)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              /**
+                * @brief  Timer5 Capture/Compare Interrupt routine
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(TIM5_CAP_COM_IRQHandler, 14)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              
+              #else /*STM8S208, STM8S207, STM8S105 or STM8S103 or STM8AF62Ax or STM8AF52Ax or STM8AF626x */
+ 291          /**
+ 292          * @brief  Timer2 Update/Overflow/Break Interrupt routine
+ 293          * @param  None
+ 294          * @retval None
+ 295          */
+ 296          INTERRUPT_HANDLER(TIM2_UPD_OVF_BRK_IRQHandler, 13)
+ 297          {
+ 298   1        /* In order to detect unexpected events during development,
+ 299   1        it is recommended to set a breakpoint on the following instruction.
+ 300   1        */
+ 301   1      }
+ 302          
+ 303          /**
+ 304          * @brief  Timer2 Capture/Compare Interrupt routine
+ 305          * @param  None
+ 306          * @retval None
+ 307          */
+ 308          INTERRUPT_HANDLER(TIM2_CAP_COM_IRQHandler, 14)
+ 309          {
+ 310   1        /* In order to detect unexpected events during development,
+ 311   1        it is recommended to set a breakpoint on the following instruction.
+ 312   1        */
+ 313   1      }
+ 314          #endif /*STM8S903*/
+ 315          
+ 316          #if defined (STM8S208) || defined(STM8S207) || defined(STM8S105) || defined (STM8AF62Ax) ||\
+ 317              defined (STM8AF52Ax) || defined (STM8AF626x)
+ 318          /**
+ 319            * @brief Timer3 Update/Overflow/Break Interrupt routine.
+ 320            * @param  None
+ 321            * @retval None
+ 322            */
+ 323          INTERRUPT_HANDLER(TIM3_UPD_OVF_BRK_IRQHandler, 15)
+ 324          {
+ 325   1        /* In order to detect unexpected events during development,
+ 326   1           it is recommended to set a breakpoint on the following instruction.
+ 327   1        */
+ 328   1      }
+ 329          
+ 330          /**
+ 331            * @brief  Timer3 Capture/Compare Interrupt routine
+ 332            * @param  None
+ 333            * @retval None
+ 334            */
+ 335          INTERRUPT_HANDLER(TIM3_CAP_COM_IRQHandler, 16)
+ 336          {
+ 337   1        /* In order to detect unexpected events during development,
+ 338   1           it is recommended to set a breakpoint on the following instruction.
+ 339   1        */
+ 340   1      }
+ 341          #endif /*STM8S208, STM8S207 or STM8S105 or STM8AF62Ax or STM8AF52Ax or STM8AF626x */
+ 342          
+ 343          #if defined (STM8S208) || defined(STM8S207) || defined(STM8S103) || defined (STM8AF62Ax) ||\
+ 344              defined (STM8AF52Ax) || defined (STM8S903)
+ 345          /**
+ 346            * @brief  UART1 TX Interrupt routine
+ 347            * @param  None
+ 348            * @retval None
+ 349            */
+ 350          INTERRUPT_HANDLER(UART1_TX_IRQHandler, 17)
+ 351          {
+ 352   1        /* In order to detect unexpected events during development,
+ 353   1           it is recommended to set a breakpoint on the following instruction.
+ 354   1        */
+ 355   1      }
+ 356          
+ 357          /**
+ 358            * @brief  UART1 RX Interrupt routine
+ 359            * @param  None
+ 360            * @retval None
+ 361            */
+ 362          INTERRUPT_HANDLER(UART1_RX_IRQHandler, 18)
+ 363          {
+ 364   1        /* In order to detect unexpected events during development,
+ 365   1           it is recommended to set a breakpoint on the following instruction.
+ 366   1        */
+ 367   1      }
+ 368          #endif /*STM8S105*/
+ 369          
+ 370          /**
+ 371            * @brief  I2C Interrupt routine
+ 372            * @param  None
+ 373            * @retval None
+ 374            */
+ 375          INTERRUPT_HANDLER(I2C_IRQHandler, 19)
+ 376          {
+ 377   1        /* In order to detect unexpected events during development,
+ 378   1           it is recommended to set a breakpoint on the following instruction.
+ 379   1        */
+ 380   1      }
+ 381          
+ 382          #if defined (STM8S105) || defined (STM8AF626x)
+              /**
+                * @brief  UART2 TX interrupt routine.
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(UART2_TX_IRQHandler, 20)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              
+              /**
+                * @brief  UART2 RX interrupt routine.
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(UART2_RX_IRQHandler, 21)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              #endif /* STM8S105*/
+ 407          
+ 408          #if defined(STM8S207) || defined(STM8S208) || defined (STM8AF52Ax) || defined (STM8AF62Ax)
+ 409          /**
+ 410            * @brief  UART3 TX interrupt routine.
+ 411            * @param  None
+ 412            * @retval None
+ 413            */
+ 414          INTERRUPT_HANDLER(UART3_TX_IRQHandler, 20)
+ 415          {
+ 416   1        /* In order to detect unexpected events during development,
+ 417   1           it is recommended to set a breakpoint on the following instruction.
+ 418   1        */
+ 419   1      }
+ 420          
+ 421          /**
+ 422            * @brief  UART3 RX interrupt routine.
+ 423            * @param  None
+ 424            * @retval None
+ 425            */
+ 426          INTERRUPT_HANDLER(UART3_RX_IRQHandler, 21)
+ 427          {
+ 428   1      
+ 429   1        SET_DEBUG_PIN_1;
+ 430   1      
+ 431   1        UART3_SR_Buf = UART3->SR;
+ 432   1        UART3Data = UART3->DR;
+ 433   1      
+ 434   1        /* LIN Master */
+ 435   1      
+ 436   1      	/* Synch Break + Synch Del received ? */
+ 437   1      	if (UART3->CR4 & UART3_CR4_LBDF)
+ 438   1      	{
+ 439   2      		UART3->CR4 &= ~UART3_CR4_LBDF; /* Reset LBDF flag */
+ 440   2      		BreakReceived = 1;
+ 441   2      	}
+ 442   1      	else
+ 443   1      	{
+ 444   2      		/* Framing error ? */
+ 445   2      		if (UART3_SR_Buf & UART3_SR_FE)
+ 446   2      		{
+ 447   3      			DataReceived = 1;
+ 448   3      			ReceptionError = 1;
+ 449   3      			UART3_BDIE(); /* It can be a Break, wait for next IT...*/
+ 450   3      		}
+ 451   2      
+ 452   2      		/* Overrun error ? */
+ 453   2      		if (UART3_SR_Buf & UART3_SR_OR)
+ 454   2      		{
+ 455   3      			DataReceived = 1;
+ 456   3      			ReceptionError = 1;
+ 457   3      		}
+ 458   2      
+ 459   2      		/* Data received ? */
+ 460   2      		if (UART3_SR_Buf & UART3_SR_RXNE)
+ 461   2      		{
+ 462   3      			DataReceived = 1;
+ 463   3      		}
+ 464   2      	}
+ 465   1      
+ 466   1        CLEAR_DEBUG_PIN_1;
+ 467   1      }
+ 468          #endif /*STM8S208 or STM8S207 or STM8AF52Ax or STM8AF62Ax */
+ 469          
+ 470          #if defined(STM8S207) || defined(STM8S208) || defined (STM8AF52Ax) || defined (STM8AF62Ax)
+ 471          /**
+ 472            * @brief  ADC2 interrupt routine.
+ 473            * @param  None
+ 474            * @retval None
+ 475            */
+ 476          INTERRUPT_HANDLER(ADC2_IRQHandler, 22)
+ 477          {
+ 478   1        /* In order to detect unexpected events during development,
+ 479   1          it is recommended to set a breakpoint on the following instruction.
+ 480   1       */
+ 481   1      }
+ 482          #else /*STM8S105, STM8S103 or STM8S903 or STM8AF626x */
+              /**
+              * @brief  ADC1 interrupt routine.
+              * @param  None
+              * @retval None
+              */
+              INTERRUPT_HANDLER(ADC1_IRQHandler, 22)
+              {
+              
+                /* In order to detect unexpected events during development,
+                it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              #endif /*STM8S208 or STM8S207 or STM8AF52Ax or STM8AF62Ax */
+ 496          
+ 497          #ifdef STM8S903
+              /**
+                * @brief  Timer6 Update/Overflow/Trigger Interrupt routine
+                * @param  None
+                * @retval None
+                */
+              INTERRUPT_HANDLER(TIM6_UPD_OVF_TRG_IRQHandler, 23)
+              {
+                /* In order to detect unexpected events during development,
+                   it is recommended to set a breakpoint on the following instruction.
+                */
+              }
+              #else /*STM8S208, STM8S207, STM8S105 or STM8S103 or STM8AF62Ax or STM8AF52Ax or STM8AF626x */
+ 510          /**
+ 511          * @brief  Timer4 Update/Overflow Interrupt routine
+ 512          * @param  None
+ 513          * @retval None
+ 514          */
+ 515          INTERRUPT_HANDLER(TIM4_UPD_OVF_IRQHandler, 23)
+ 516          {
+ 517   1      
+ 518   1        SET_DEBUG_PIN_0;
+ 519   1      
+ 520   1        SetLINTimebaseTick();
+ 521   1      
+ 522   1        if (AppliTick > APPLI_TASK_40MS)
+ 523   1        {
+ 524   2          AppliTick = 0;
+ 525   2          SetAppliTimebaseTick();
+ 526   2        }
+ 527   1        else
+ 528   1        {
+ 529   2          AppliTick++;
+ 530   2        }
+ 531   1      
+ 532   1        if (LINReceptionTimeout == TRUE) LINReceptionTimeoutValue++;
+ 533   1      
+ 534   1        TimingDelay_Decrement();
+ 535   1        WdgAutoDecrement();
+ 536   1      
+ 537   1        /* Cleat Interrupt Pending bit */
+ 538   1        TIM4_ClearITPendingBit(TIM4_IT_UPDATE);
+ 539   1      
+ 540   1        CLEAR_DEBUG_PIN_0;
+ 541   1      }
+ 542          #endif /*STM8S903*/
+ 543          
+ 544          /**
+ 545            * @brief  Eeprom EEC Interrupt routine
+ 546            * @param  None
+ 547            * @retval None
+ 548            */
+ 549          INTERRUPT_HANDLER(EEPROM_EEC_IRQHandler, 24)
+ 550          {
+ 551   1        /* In order to detect unexpected events during development,
+ 552   1           it is recommended to set a breakpoint on the following instruction.
+ 553   1        */
+ 554   1      }
+ 555          
+ 556          /**
+ 557            * @}
+ 558            */
+ 559          
+ 560          /******************* (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+ 561          
+RCSTM8 COMPILER V2.44.12.199
+ASSEMBLY LISTING OF GENERATED OBJECT CODE
+
+              ; FUNCTION ?TRAP_IRQHandler (BEGIN)
+              ; SOURCE LINE # 93 
+0000 80                                IRET   
+
+              ; FUNCTION ?TRAP_IRQHandler (END)
+
+              ; FUNCTION ?TLI_IRQHandler (BEGIN)
+              ; SOURCE LINE # 104 
+0000 80                                IRET   
+
+              ; FUNCTION ?TLI_IRQHandler (END)
+
+              ; FUNCTION ?AWU_IRQHandler (BEGIN)
+              ; SOURCE LINE # 116 
+0000 80                                IRET   
+
+              ; FUNCTION ?AWU_IRQHandler (END)
+
+              ; FUNCTION ?CLK_IRQHandler (BEGIN)
+              ; SOURCE LINE # 128 
+0000 80                                IRET   
+
+              ; FUNCTION ?CLK_IRQHandler (END)
+
+              ; FUNCTION ?EXTI_PORTA_IRQHandler (BEGIN)
+              ; SOURCE LINE # 140 
+0000 80                                IRET   
+
+              ; FUNCTION ?EXTI_PORTA_IRQHandler (END)
+
+              ; FUNCTION ?EXTI_PORTB_IRQHandler (BEGIN)
+              ; SOURCE LINE # 152 
+0000 80                                IRET   
+
+              ; FUNCTION ?EXTI_PORTB_IRQHandler (END)
+
+              ; FUNCTION ?EXTI_PORTC_IRQHandler (BEGIN)
+              ; SOURCE LINE # 164 
+0000 80                                IRET   
+
+              ; FUNCTION ?EXTI_PORTC_IRQHandler (END)
+
+              ; FUNCTION ?EXTI_PORTD_IRQHandler (BEGIN)
+              ; SOURCE LINE # 176 
+0000 80                                IRET   
+
+              ; FUNCTION ?EXTI_PORTD_IRQHandler (END)
+
+              ; FUNCTION ?EXTI_PORTE_IRQHandler (BEGIN)
+              ; SOURCE LINE # 183 
+0000 8A                                PUSH   CC
+0001 84                                POP    A
+0002 A4BF                              AND    A,#0BFH
+0004 88                                PUSH   A
+0005 86                                POP    CC
+0006 BE03       F                      LDW    X,?CH.w
+0008 89                                PUSHW  X
+0009 BE02       F                      LDW    X,?BH.w
+000B 89                                PUSHW  X
+              ; SOURCE LINE # 186 
+000C AE0004                            LDW    X,#00004H
+000F 89                                PUSHW  X
+0010 AE5014                            LDW    X,#05014H
+0013 CD0000     F                      CALL   ?GPIO_ReadInputPin
+0016 5B02                              ADD    SP,#002H
+0018 5D                                TNZW   X
+0019 2605                              JRNE   ?NXT_0019
+001B 5F                                CLRW   X
+001C 5C                                INCW   X
+001D CF0000     F                      LDW    UserButton1,X
+0020         ?NXT_0019:
+              ; SOURCE LINE # 187 
+0020 AE0002                            LDW    X,#00002H
+0023 89                                PUSHW  X
+0024 AE5014                            LDW    X,#05014H
+0027 CD0000     F                      CALL   ?GPIO_ReadInputPin
+002A 5B02                              ADD    SP,#002H
+002C 5D                                TNZW   X
+002D 2605                              JRNE   ?NXT_0021
+002F 5F                                CLRW   X
+0030 5C                                INCW   X
+0031 CF0000     F                      LDW    UserButton2,X
+0034         ?NXT_0021:
+              ; SOURCE LINE # 189 
+0034 85                                POPW   X
+0035 BF02       F                      LDW    ?BH.w,X
+0037 85                                POPW   X
+0038 BF03       F                      LDW    ?CH.w,X
+003A 80                                IRET   
+
+              ; FUNCTION ?EXTI_PORTE_IRQHandler (END)
+
+              ; FUNCTION ?CAN_RX_IRQHandler (BEGIN)
+              ; SOURCE LINE # 215 
+0000 80                                IRET   
+
+              ; FUNCTION ?CAN_RX_IRQHandler (END)
+
+              ; FUNCTION ?CAN_TX_IRQHandler (BEGIN)
+              ; SOURCE LINE # 227 
+0000 80                                IRET   
+
+              ; FUNCTION ?CAN_TX_IRQHandler (END)
+
+              ; FUNCTION ?SPI_IRQHandler (BEGIN)
+              ; SOURCE LINE # 240 
+0000 80                                IRET   
+
+              ; FUNCTION ?SPI_IRQHandler (END)
+
+              ; FUNCTION ?TIM1_UPD_OVF_TRG_BRK_IRQHandler (BEGIN)
+              ; SOURCE LINE # 252 
+0000 80                                IRET   
+
+              ; FUNCTION ?TIM1_UPD_OVF_TRG_BRK_IRQHandler (END)
+
+              ; FUNCTION ?TIM1_CAP_COM_IRQHandler (BEGIN)
+              ; SOURCE LINE # 264 
+0000 80                                IRET   
+
+              ; FUNCTION ?TIM1_CAP_COM_IRQHandler (END)
+
+              ; FUNCTION ?TIM2_UPD_OVF_BRK_IRQHandler (BEGIN)
+              ; SOURCE LINE # 301 
+0000 80                                IRET   
+
+              ; FUNCTION ?TIM2_UPD_OVF_BRK_IRQHandler (END)
+
+              ; FUNCTION ?TIM2_CAP_COM_IRQHandler (BEGIN)
+              ; SOURCE LINE # 313 
+0000 80                                IRET   
+
+              ; FUNCTION ?TIM2_CAP_COM_IRQHandler (END)
+
+              ; FUNCTION ?TIM3_UPD_OVF_BRK_IRQHandler (BEGIN)
+              ; SOURCE LINE # 328 
+0000 80                                IRET   
+
+              ; FUNCTION ?TIM3_UPD_OVF_BRK_IRQHandler (END)
+
+              ; FUNCTION ?TIM3_CAP_COM_IRQHandler (BEGIN)
+              ; SOURCE LINE # 340 
+0000 80                                IRET   
+
+              ; FUNCTION ?TIM3_CAP_COM_IRQHandler (END)
+
+              ; FUNCTION ?UART1_TX_IRQHandler (BEGIN)
+              ; SOURCE LINE # 355 
+0000 80                                IRET   
+
+              ; FUNCTION ?UART1_TX_IRQHandler (END)
+
+              ; FUNCTION ?UART1_RX_IRQHandler (BEGIN)
+              ; SOURCE LINE # 367 
+0000 80                                IRET   
+
+              ; FUNCTION ?UART1_RX_IRQHandler (END)
+
+              ; FUNCTION ?I2C_IRQHandler (BEGIN)
+              ; SOURCE LINE # 380 
+0000 80                                IRET   
+
+              ; FUNCTION ?I2C_IRQHandler (END)
+
+              ; FUNCTION ?UART3_TX_IRQHandler (BEGIN)
+              ; SOURCE LINE # 419 
+0000 80                                IRET   
+
+              ; FUNCTION ?UART3_TX_IRQHandler (END)
+
+              ; FUNCTION ?UART3_RX_IRQHandler (BEGIN)
+              ; SOURCE LINE # 426 
+0000 8A                                PUSH   CC
+0001 84                                POP    A
+0002 A4BF                              AND    A,#0BFH
+0004 88                                PUSH   A
+0005 86                                POP    CC
+0006 BE03       F                      LDW    X,?CH.w
+0008 89                                PUSHW  X
+0009 BE02       F                      LDW    X,?BH.w
+000B 89                                PUSHW  X
+              ; SOURCE LINE # 431 
+000C 5552400000 F                      MOV    UART3_SR_Buf,05240H
+              ; SOURCE LINE # 432 
+0011 5552410000 F                      MOV    UART3Data,05241H
+              ; SOURCE LINE # 437 
+0016 720952470A                        BTJF   05247H,#004H,?ELSE_0008
+              ; SOURCE LINE # 439 
+001B 72195247                          BRES   05247H,#004H
+              ; SOURCE LINE # 440 
+001F 35010000   F                      MOV    BreakReceived,#001H
+0023 2026                              JRA    ?NXT_0057
+0025         ?ELSE_0008:
+              ; SOURCE LINE # 445 
+0025 720300000B F                      BTJF   UART3_SR_Buf,#001H,?NXT_0054
+              ; SOURCE LINE # 447 
+002A 35010000   F                      MOV    DataReceived,#001H
+              ; SOURCE LINE # 448 
+002E 35010000   F                      MOV    ReceptionError,#001H
+              ; SOURCE LINE # 449 
+0032 CD0000     F                      CALL   ?UART3_BDIE
+0035         ?NXT_0054:
+              ; SOURCE LINE # 453 
+0035 7207000008 F                      BTJF   UART3_SR_Buf,#003H,?NXT_0055
+              ; SOURCE LINE # 455 
+003A 35010000   F                      MOV    DataReceived,#001H
+              ; SOURCE LINE # 456 
+003E 35010000   F                      MOV    ReceptionError,#001H
+0042         ?NXT_0055:
+              ; SOURCE LINE # 460 
+0042 720B000004 F                      BTJF   UART3_SR_Buf,#005H,?NXT_0057
+              ; SOURCE LINE # 462 
+0047 35010000   F                      MOV    DataReceived,#001H
+004B         ?NXT_0057:
+              ; SOURCE LINE # 467 
+004B 85                                POPW   X
+004C BF02       F                      LDW    ?BH.w,X
+004E 85                                POPW   X
+004F BF03       F                      LDW    ?CH.w,X
+0051 80                                IRET   
+
+              ; FUNCTION ?UART3_RX_IRQHandler (END)
+
+              ; FUNCTION ?ADC2_IRQHandler (BEGIN)
+              ; SOURCE LINE # 481 
+0000 80                                IRET   
+
+              ; FUNCTION ?ADC2_IRQHandler (END)
+
+              ; FUNCTION ?TIM4_UPD_OVF_IRQHandler (BEGIN)
+              ; SOURCE LINE # 515 
+0000 8A                                PUSH   CC
+0001 84                                POP    A
+0002 A4BF                              AND    A,#0BFH
+0004 88                                PUSH   A
+0005 86                                POP    CC
+0006 BE03       F                      LDW    X,?CH.w
+0008 89                                PUSHW  X
+0009 BE02       F                      LDW    X,?BH.w
+000B 89                                PUSHW  X
+              ; SOURCE LINE # 520 
+000C CD0000     F                      CALL   ?SetLINTimebaseTick
+              ; SOURCE LINE # 522 
+000F A627                              LD     A,#027H
+0011 C10000     F                      CP     A,AppliTick
+0014 2409                              JRUGE  ?ELSE_0014
+              ; SOURCE LINE # 524 
+0016 725F0000   F                      CLR    AppliTick
+              ; SOURCE LINE # 525 
+001A CD0000     F                      CALL   ?SetAppliTimebaseTick
+001D 2004                              JRA    ?NXT_0063
+001F         ?ELSE_0014:
+              ; SOURCE LINE # 529 
+001F 725C0000   F                      INC    AppliTick
+0023         ?NXT_0063:
+              ; SOURCE LINE # 532 
+0023 5F                                CLRW   X
+0024 5C                                INCW   X
+0025 C30000     F                      CPW    X,LINReceptionTimeout
+0028 2604                              JRNE   ?NXT_0064
+002A 725C0000   F                      INC    LINReceptionTimeoutValue
+002E         ?NXT_0064:
+              ; SOURCE LINE # 534 
+002E CD0000     F                      CALL   ?TimingDelay_Decrement
+              ; SOURCE LINE # 535 
+0031 CD0000     F                      CALL   ?WdgAutoDecrement
+              ; SOURCE LINE # 538 
+0034 5F                                CLRW   X
+0035 5C                                INCW   X
+0036 CD0000     F                      CALL   ?TIM4_ClearITPendingBit
+              ; SOURCE LINE # 541 
+0039 85                                POPW   X
+003A BF02       F                      LDW    ?BH.w,X
+003C 85                                POPW   X
+003D BF03       F                      LDW    ?CH.w,X
+003F 80                                IRET   
+
+              ; FUNCTION ?TIM4_UPD_OVF_IRQHandler (END)
+
+              ; FUNCTION ?EEPROM_EEC_IRQHandler (BEGIN)
+              ; SOURCE LINE # 554 
+0000 80                                IRET   
+
+              ; FUNCTION ?EEPROM_EEC_IRQHandler (END)
+
+RCSTM8 COMPILER V2.44.12.199
+NAME                                    CLASS   MSPACE  TYPE    OFFSET  SIZE
+====                                    =====   ======  ====    ======  ====
+
+int8_t . . . . . . . . . . . . . . . .  TYPEDEF ------- ????? -------      1
+int16_t. . . . . . . . . . . . . . . .  TYPEDEF ------- INT      -------     2
+int32_t. . . . . . . . . . . . . . . .  TYPEDEF ------- LONG     -------     4
+uint8_t. . . . . . . . . . . . . . . .  TYPEDEF ------- U_CHAR  -------     1
+uint16_t . . . . . . . . . . . . . . .  TYPEDEF ------- U_CHAR  -------     2
+uint32_t . . . . . . . . . . . . . . .  TYPEDEF ------- ????? -------      4
+s32. . . . . . . . . . . . . . . . . .  TYPEDEF ------- LONG     -------     4
+s16. . . . . . . . . . . . . . . . . .  TYPEDEF ------- INT      -------     2
+s8 . . . . . . . . . . . . . . . . . .  TYPEDEF ------- ????? -------      1
+u32. . . . . . . . . . . . . . . . . .  TYPEDEF ------- ????? -------      4
+u16. . . . . . . . . . . . . . . . . .  TYPEDEF ------- U_CHAR  -------     2
+u8 . . . . . . . . . . . . . . . . . .  TYPEDEF ------- U_CHAR  -------     1
+FALSE. . . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TRUE . . . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+bool . . . . . . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+RESET. . . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SET. . . . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+FlagStatus . . . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+ITStatus . . . . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+BitStatus. . . . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+BitAction. . . . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+DISABLE. . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+ENABLE . . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+FunctionalState. . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+ERROR. . . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SUCCESS. . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+ErrorStatus. . . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+GPIO_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     5
+  ODR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IDR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  DDR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+GPIO_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     5
+  ODR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IDR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  DDR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+ADC2_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     8
+  CSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  RESERVED . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  DRH. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  DRL. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  TDRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  TDRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+ADC2_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     8
+  CSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  RESERVED . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  DRH. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  DRL. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  TDRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  TDRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+AWU_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     3
+  CSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  APR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  TBR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+AWU_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     3
+  CSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  APR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  TBR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+BEEP_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     1
+  CSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+BEEP_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     1
+  CSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+CLK_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    14
+  ICKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  ECKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  RESERVED . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  CMSR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  SWR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  SWCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CKDIVR . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  PCKENR1. . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CSSR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCOR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  PCKENR2. . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  HSITRIMR . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  SWIMCCR. . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+CLK_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    14
+  ICKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  ECKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  RESERVED . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  CMSR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  SWR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  SWCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CKDIVR . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  PCKENR1. . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CSSR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCOR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  PCKENR2. . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  HSITRIMR . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  SWIMCCR. . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+TIM1_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    32
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SMCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  ETR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  CCMR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CCMR4. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  CCER2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  PSCRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+  PSCRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000011H     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000012H     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000013H     1
+  RCR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000014H     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000015H     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000016H     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000017H     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000018H     1
+  CCR3H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000019H     1
+  CCR3L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001AH     1
+  CCR4H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001BH     1
+  CCR4L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001CH     1
+  BKR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001DH     1
+  DTR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001EH     1
+  OISR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001FH     1
+TIM1_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    32
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SMCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  ETR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  CCMR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CCMR4. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  CCER2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  PSCRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+  PSCRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000011H     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000012H     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000013H     1
+  RCR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000014H     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000015H     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000016H     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000017H     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000018H     1
+  CCR3H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000019H     1
+  CCR3L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001AH     1
+  CCR4H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001BH     1
+  CCR4L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001CH     1
+  BKR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001DH     1
+  DTR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001EH     1
+  OISR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00001FH     1
+TIM2_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    21
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CCMR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCER2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000011H     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000012H     1
+  CCR3H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000013H     1
+  CCR3L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000014H     1
+TIM2_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    21
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CCMR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCER2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000011H     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000012H     1
+  CCR3H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000013H     1
+  CCR3L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000014H     1
+TIM3_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    17
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+TIM3_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    17
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+TIM4_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     7
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CNTR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  ARR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+TIM4_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     7
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CNTR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  ARR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+TIM5_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    23
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SMCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCMR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CCER2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000011H     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000012H     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000013H     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000014H     1
+  CCR3H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000015H     1
+  CCR3L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000016H     1
+TIM5_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    23
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SMCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CCMR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CCMR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CCMR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  CCER1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CCER2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  CNTRH. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  CNTRL. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+  ARRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000FH     1
+  ARRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000010H     1
+  CCR1H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000011H     1
+  CCR1L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000012H     1
+  CCR2H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000013H     1
+  CCR2L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000014H     1
+  CCR3H. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000015H     1
+  CCR3L. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000016H     1
+TIM6_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     9
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SMCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CNTR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  ARR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+TIM6_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     9
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  SMCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  EGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CNTR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  ARR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+I2C_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    15
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  FREQR. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  OARL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  OARH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  SR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  ITR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CCRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  CCRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  TRISER . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  RESERVED2. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+I2C_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    15
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  FREQR. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  OARL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  OARH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  SR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  SR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  SR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  ITR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  CCRL . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  CCRH . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  TRISER . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  RESERVED2. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+ITC_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     8
+  ISPR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  ISPR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  ISPR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  ISPR4. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  ISPR5. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  ISPR6. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  ISPR7. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  ISPR8. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+ITC_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     8
+  ISPR1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  ISPR2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  ISPR3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  ISPR4. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  ISPR5. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  ISPR6. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  ISPR7. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  ISPR8. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+EXTI_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     2
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+EXTI_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     2
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+FLASH_struct . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    11
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  NCR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  FPR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  NFPR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  IAPSR. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  RESERVED2. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  PUKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  RESERVED3. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  DUKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+FLASH_TypeDef. . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    11
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  NCR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  FPR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  NFPR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  IAPSR. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  RESERVED2. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  PUKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  RESERVED3. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  DUKR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+OPT_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    15
+  OPT0 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  OPT1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  NOPT1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  OPT2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  NOPT2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  OPT3 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  NOPT3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  OPT4 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  NOPT4. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  OPT5 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  NOPT5. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  RESERVED2. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  OPT7 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  NOPT7. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+OPT_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    15
+  OPT0 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  OPT1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  NOPT1. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  OPT2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  NOPT2. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  OPT3 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  NOPT3. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  OPT4 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  NOPT4. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  OPT5 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  NOPT5. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  RESERVED1. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+  RESERVED2. . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000CH     1
+  OPT7 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000DH     1
+  NOPT7. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000EH     1
+IWDG_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     3
+  KR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  PR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  RLR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+IWDG_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     3
+  KR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  PR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  RLR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+WWDG_struct. . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     2
+  CR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  WR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+WWDG_TypeDef . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     2
+  CR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  WR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+RST_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     1
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+RST_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     1
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+SPI_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     8
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  ICR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CRCPR. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  RXCRCR . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  TXCRCR . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+SPI_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     8
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  ICR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CRCPR. . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  RXCRCR . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  TXCRCR . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+UART1_struct . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    11
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  BRR1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  BRR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CR4. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CR5. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  GTR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+UART1_TypeDef. . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    11
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  BRR1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  BRR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CR4. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CR5. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  GTR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+UART2_struct . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    12
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  BRR1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  BRR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CR4. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CR5. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CR6. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  GTR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+UART2_TypeDef. . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    12
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  BRR1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  BRR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CR4. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  CR5. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CR6. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+  GTR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000AH     1
+  PSCR . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  00000BH     1
+UART3_struct . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------    10
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  BRR1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  BRR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CR4. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  RESERVED . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CR6. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+UART3_TypeDef. . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    10
+  SR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  DR . . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  BRR1 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  BRR2 . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  CR1. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  CR2. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  CR3. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  CR4. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  RESERVED . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000008H     1
+  CR6. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000009H     1
+CAN_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------    24
+  MCR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+  MSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000001H     1
+  TSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000002H     1
+  TPR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000003H     1
+  RFR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000004H     1
+  IER. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000005H     1
+  DGR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000006H     1
+  PSR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000007H     1
+  Page . . . . . . . . . . . . . . . .  MEMBER  -----   UNION   000008H    16
+CFG_struct . . . . . . . . . . . . . . * TAG *  ----- STRUCT  -------     1
+  GCR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+CFG_TypeDef. . . . . . . . . . . . . .  TYPEDEF ------- STRUCT   -------     1
+  GCR. . . . . . . . . . . . . . . . .  MEMBER  -----   U_CHAR  000000H     1
+CLK_SWITCHMODE_MANUAL. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_SWITCHMODE_AUTO. . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_SwitchMode_TypeDef . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_CURRENTCLOCKSTATE_DISABLE. . . . . E_CONST  ----- INT      -------  2
+CLK_CURRENTCLOCKSTATE_ENABLE . . . . . E_CONST  ----- INT      -------  2
+CLK_CurrentClockState_TypeDef. . . . .  TYPEDEF ------- INT   -------     2
+CLK_CSSCONFIG_ENABLEWITHIT . . . . . . E_CONST  ----- INT      -------  2
+CLK_CSSCONFIG_ENABLE . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_CSSCONFIG_DISABLE. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_CSSConfig_TypeDef. . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_SOURCE_HSI . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_SOURCE_LSI . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_SOURCE_HSE . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_Source_TypeDef . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_HSITRIMVALUE_0 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_1 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_2 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_3 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_4 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_5 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_6 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITRIMVALUE_7 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_HSITrimValue_TypeDef . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_OUTPUT_HSI . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_LSI . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_HSE . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPU . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPUDIV2 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPUDIV4 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPUDIV8 . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPUDIV16. . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPUDIV32. . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_CPUDIV64. . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_HSIRC . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_MASTER. . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_OUTPUT_OTHERS. . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_Output_TypeDef . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_PERIPHERAL_I2C . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_SPI . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_UART1 . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_UART2 . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_UART3 . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_TIMER6. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_TIMER4. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_TIMER5. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_TIMER2. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_TIMER3. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_TIMER1. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_AWU . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_ADC . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PERIPHERAL_CAN . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_Peripheral_TypeDef . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_FLAG_LSIRDY. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_HSIRDY. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_HSERDY. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_SWIF. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_SWBSY . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_CSSD. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_AUX . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_CCOBSY. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_FLAG_CCORDY. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_Flag_TypeDef . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_IT_CSSD. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_IT_SWIF. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_IT_TypeDef . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_PRESCALER_HSIDIV1. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_HSIDIV2. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_HSIDIV4. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_HSIDIV8. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV1. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV2. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV4. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV8. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV16 . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV32 . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV64 . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_PRESCALER_CPUDIV128. . . . . . . . E_CONST  ----- INT      -------  2
+CLK_Prescaler_TypeDef. . . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_SWIMDIVIDER_2. . . . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_SWIMDIVIDER_OTHER. . . . . . . . . E_CONST  ----- INT      -------  2
+CLK_SWIMDivider_TypeDef. . . . . . . .  TYPEDEF ------- INT   -------     2
+CLK_DeInit . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_HSECmd . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_HSICmd . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_LSICmd . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_CCOCmd . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_ClockSwitchCmd . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_FastHaltWakeUpCmd. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_SlowActiveHaltWakeUpCmd. . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_PeripheralClockConfig. . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_ClockSwitchConfig. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_HSIPrescalerConfig . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_CCOConfig. . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_ITConfig . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_SYSCLKConfig . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_SWIMConfig . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_ClockSecuritySystemEnable. . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_SYSCLKEmergencyClear . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_AdjustHSICalibrationValue. . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_GetClockFreq . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_GetSYSCLKSource. . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_GetFlagStatus. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_GetITStatus. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+CLK_ClearITPendingBit. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+EXTI_SENSITIVITY_FALL_LOW. . . . . . . E_CONST  ----- INT      -------  2
+EXTI_SENSITIVITY_RISE_ONLY . . . . . . E_CONST  ----- INT      -------  2
+EXTI_SENSITIVITY_FALL_ONLY . . . . . . E_CONST  ----- INT      -------  2
+EXTI_SENSITIVITY_RISE_FALL . . . . . . E_CONST  ----- INT      -------  2
+EXTI_Sensitivity_TypeDef . . . . . . .  TYPEDEF ------- INT   -------     2
+EXTI_TLISENSITIVITY_FALL_ONLY. . . . . E_CONST  ----- INT      -------  2
+EXTI_TLISENSITIVITY_RISE_ONLY. . . . . E_CONST  ----- INT      -------  2
+EXTI_TLISensitivity_TypeDef. . . . . .  TYPEDEF ------- INT   -------     2
+EXTI_PORT_GPIOA. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+EXTI_PORT_GPIOB. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+EXTI_PORT_GPIOC. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+EXTI_PORT_GPIOD. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+EXTI_PORT_GPIOE. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+EXTI_Port_TypeDef. . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+EXTI_DeInit. . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+EXTI_SetExtIntSensitivity. . . . . . .  EXTERN  CODE    PROC    ------- -----
+EXTI_SetTLISensitivity . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+EXTI_GetExtIntSensitivity. . . . . . .  EXTERN  CODE    PROC    ------- -----
+EXTI_GetTLISensitivity . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_MODE_IN_FL_NO_IT. . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_IN_PU_NO_IT. . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_IN_FL_IT . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_IN_PU_IT . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_OD_LOW_FAST. . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_PP_LOW_FAST. . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_OD_LOW_SLOW. . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_PP_LOW_SLOW. . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_OD_HIZ_FAST. . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_PP_HIGH_FAST . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_OD_HIZ_SLOW. . . . . . . E_CONST  ----- INT      -------  2
+GPIO_MODE_OUT_PP_HIGH_SLOW . . . . . . E_CONST  ----- INT      -------  2
+GPIO_Mode_TypeDef. . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+GPIO_PIN_0 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_1 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_2 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_3 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_4 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_5 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_6 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_7 . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_LNIB. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_HNIB. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_PIN_ALL . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_Pin_TypeDef . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+GPIO_DeInit. . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_Init. . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_Write . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_WriteHigh . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_WriteLow. . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_WriteReverse. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_ReadInputData . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_ReadOutputData. . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_ReadInputPin. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+GPIO_ExternalPullUpConfig. . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_DATADIRECTION_2LINES_FULLDUPLEX. . E_CONST  ----- INT      -------  2
+SPI_DATADIRECTION_2LINES_RXONLY. . . . E_CONST  ----- INT      -------  2
+SPI_DATADIRECTION_1LINE_RX . . . . . . E_CONST  ----- INT      -------  2
+SPI_DATADIRECTION_1LINE_TX . . . . . . E_CONST  ----- INT      -------  2
+SPI_DataDirection_TypeDef. . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_NSS_SOFT . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_NSS_HARD . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_NSS_TypeDef. . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_DIRECTION_RX . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_DIRECTION_TX . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_Direction_TypeDef. . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_MODE_MASTER. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_MODE_SLAVE . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_Mode_TypeDef . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_BAUDRATEPRESCALER_2. . . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_4. . . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_8. . . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_16 . . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_32 . . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_64 . . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_128. . . . . . . E_CONST  ----- INT      -------  2
+SPI_BAUDRATEPRESCALER_256. . . . . . . E_CONST  ----- INT      -------  2
+SPI_BaudRatePrescaler_TypeDef. . . . .  TYPEDEF ------- INT   -------     2
+SPI_CLOCKPOLARITY_LOW. . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_CLOCKPOLARITY_HIGH . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_ClockPolarity_TypeDef. . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_CLOCKPHASE_1EDGE . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_CLOCKPHASE_2EDGE . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_ClockPhase_TypeDef . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_FIRSTBIT_MSB . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FIRSTBIT_LSB . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FirstBit_TypeDef . . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_CRC_RX . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_CRC_TX . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_CRC_TypeDef. . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_FLAG_BSY . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FLAG_OVR . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FLAG_MODF. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FLAG_CRCERR. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FLAG_WKUP. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FLAG_TXE . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_FLAG_RXNE. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_Flag_TypeDef . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_IT_WKUP. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_OVR . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_MODF. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_CRCERR. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_TXE . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_RXNE. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_ERR . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SPI_IT_TypeDef . . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+SPI_DeInit . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_Init . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_Cmd. . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_ITConfig . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_SendData . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_ReceiveData. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_NSSInternalSoftwareCmd . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_TransmitCRC. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_CalculateCRCCmd. . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_GetCRC . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_ResetCRC . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_GetCRCPolynomial . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_BiDirectionalLineConfig. . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_GetFlagStatus. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_ClearFlag. . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_GetITStatus. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SPI_ClearITPendingBit. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_PRESCALER_1 . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_2 . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_4 . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_8 . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_16. . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_32. . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_64. . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PRESCALER_128 . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_Prescaler_TypeDef . . . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_OPMODE_SINGLE . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_OPMODE_REPETITIVE . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_OPMode_TypeDef. . . . . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_PSCRELOADMODE_UPDATE. . . . . . . E_CONST  ----- INT      -------  2
+TIM4_PSCRELOADMODE_IMMEDIATE . . . . . E_CONST  ----- INT      -------  2
+TIM4_PSCReloadMode_TypeDef . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_UPDATESOURCE_GLOBAL . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_UPDATESOURCE_REGULAR. . . . . . . E_CONST  ----- INT      -------  2
+TIM4_UpdateSource_TypeDef. . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_EVENTSOURCE_UPDATE. . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_EventSource_TypeDef . . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_FLAG_UPDATE . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_FLAG_TypeDef. . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_IT_UPDATE . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+TIM4_IT_TypeDef. . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+TIM4_DeInit. . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_TimeBaseInit. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_Cmd . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_ITConfig. . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_UpdateDisableConfig . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_UpdateRequestConfig . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_SelectOnePulseMode. . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_PrescalerConfig . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_ARRPreloadConfig. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_GenerateEvent . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_SetCounter. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_SetAutoreload . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_GetCounter. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_GetPrescaler. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_GetFlagStatus . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_ClearFlag . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_GetITStatus . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_ClearITPendingBit . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_WAKEUP_IDLELINE. . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_WAKEUP_ADDRESSMARK . . . . . . . E_CONST  ----- INT      -------  2
+UART3_WakeUp_TypeDef . . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_LINBREAKDETECTIONLENGTH_10BITS . E_CONST  ----- INT      -------  2
+UART3_LINBREAKDETECTIONLENGTH_11BITS . E_CONST  ----- INT      -------  2
+UART3_LINBreakDetectionLength_TypeDef.  TYPEDEF ------- INT   -------     2
+UART3_STOPBITS_1 . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_STOPBITS_2 . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_StopBits_TypeDef . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_PARITY_NO. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_PARITY_EVEN. . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_PARITY_ODD . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_Parity_TypeDef . . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_WORDLENGTH_8D. . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_WORDLENGTH_9D. . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_WordLength_TypeDef . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_MODE_RX_ENABLE . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_MODE_TX_ENABLE . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_MODE_TX_DISABLE. . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_MODE_RX_DISABLE. . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_MODE_TXRX_ENABLE . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_Mode_TypeDef . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_LIN_MODE_MASTER. . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_LIN_MODE_SLAVE . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_LinMode_TypeDef. . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_LIN_AUTOSYNC_DISABLE . . . . . . E_CONST  ----- INT      -------  2
+UART3_LIN_AUTOSYNC_ENABLE. . . . . . . E_CONST  ----- INT      -------  2
+UART3_LinAutosync_TypeDef. . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_LIN_DIVUP_LBRR1. . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_LIN_DIVUP_NEXTRXNE . . . . . . . E_CONST  ----- INT      -------  2
+UART3_LinDivUp_TypeDef . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_FLAG_TXE . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_TC. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_RXNE. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_IDLE. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_OR_LHE. . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_NF. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_FE. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_PE. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_SBK . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_LBDF. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_LHDF. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_FLAG_LSF . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_Flag_TypeDef . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_IT_TXE . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_TC. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_RXNE. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_IDLE. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_OR. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_PE. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_LBDF. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_LHDF. . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_RXNE_OR . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_IT_TypeDef . . . . . . . . . . .  TYPEDEF ------- INT   -------     2
+UART3_DeInit . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_Init . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_Cmd. . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_ITConfig . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_LINBreakDetectionConfig. . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_LINConfig. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_LINCmd . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_ReceiverWakeUpCmd. . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_WakeUpConfig . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_ReceiveData8 . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_ReceiveData9 . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_SendData8. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_SendData9. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_SendBreak. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_SetAddress . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_GetFlagStatus. . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_ClearFlag. . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_GetITStatus. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UART3_ClearITPendingBit. . . . . . . .  EXTERN  CODE    PROC    ------- -----
+assert_failed. . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_fctptr_t. . . . . . . . . . . . . . .  TYPEDEF ------- PTR     -------     2
+_halt_ . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_jmp_. . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_nop_. . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_rim_. . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_sim_. . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_trap_ . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_wfe_. . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_wfi_. . . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_getCC_. . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_setCC_. . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_getSP_. . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_setSP_. . . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_swapbyte_ . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+_swapnibble_ . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+UserButton1. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UserButton2. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_SR_Buf . . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+UART3Data. . . . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+ReceptionError . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+ReceptionEnable. . . . . . . . . . . . E_CONST  ----- INT      -------  2
+LINSlave . . . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+SetLINTimebaseTick . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SetAppliTimebaseTick . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TimingDelay_Decrement. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+WdgAutoDecrement . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+DataReceived . . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+HeaderReceived . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+BreakReceived. . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+IdentifierParityError. . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+LINReceptionTimeoutValue . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+LINReceptionTimeout. . . . . . . . . . E_CONST  ----- INT      -------  2
+UART3_BDIE . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+AppliTick. . . . . . . . . . . . . . .  STATIC  DATA    U_CHAR  000000H     1
+TRAP_IRQHandler. . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+TLI_IRQHandler . . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+AWU_IRQHandler . . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+CLK_IRQHandler . . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+EXTI_PORTA_IRQHandler. . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+EXTI_PORTB_IRQHandler. . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+EXTI_PORTC_IRQHandler. . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+EXTI_PORTD_IRQHandler. . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+EXTI_PORTE_IRQHandler. . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+CAN_RX_IRQHandler. . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+CAN_TX_IRQHandler. . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+SPI_IRQHandler . . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+TIM1_UPD_OVF_TRG_BRK_IRQHandler. . . .  PUBLIC  CODE    PROC    ------- -----
+TIM1_CAP_COM_IRQHandler. . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+TIM2_UPD_OVF_BRK_IRQHandler. . . . . .  PUBLIC  CODE    PROC    ------- -----
+TIM2_CAP_COM_IRQHandler. . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+TIM3_UPD_OVF_BRK_IRQHandler. . . . . .  PUBLIC  CODE    PROC    ------- -----
+TIM3_CAP_COM_IRQHandler. . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+UART1_TX_IRQHandler. . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+UART1_RX_IRQHandler. . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+I2C_IRQHandler . . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+UART3_TX_IRQHandler. . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+UART3_RX_IRQHandler. . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+ADC2_IRQHandler. . . . . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+TIM4_UPD_OVF_IRQHandler. . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+EEPROM_EEC_IRQHandler. . . . . . . . .  PUBLIC  CODE    PROC    ------- -----
+UserButton1. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+UserButton2. . . . . . . . . . . . . . E_CONST  ----- INT      -------  2
+GPIO_ReadInputPin. . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+?CH. . . . . . . . . . . . . . . . . .  EXTERN  PAGE0   U_CHAR  ------- -----
+?BH. . . . . . . . . . . . . . . . . .  EXTERN  PAGE0   U_CHAR  ------- -----
+UART3_SR_Buf . . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+UART3Data. . . . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+BreakReceived. . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+DataReceived . . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+ReceptionError . . . . . . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+UART3_BDIE . . . . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+LINReceptionTimeout. . . . . . . . . . E_CONST  ----- INT      -------  2
+LINReceptionTimeoutValue . . . . . . .  EXTERN  DATA    U_CHAR  ------- -----
+SetLINTimebaseTick . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+SetAppliTimebaseTick . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TimingDelay_Decrement. . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+WdgAutoDecrement . . . . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+TIM4_ClearITPendingBit . . . . . . . .  EXTERN  CODE    PROC    ------- -----
+RCSTM8 COMPILER V2.44.12.199
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    228    ----
+   CONSTANT SIZE    =    104    ----
+   DATA SIZE        =      1    ----
+   PAGE0 SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+RCSTM8 COMPILATION COMPLETE.  0 WARNING,  0 ERROR

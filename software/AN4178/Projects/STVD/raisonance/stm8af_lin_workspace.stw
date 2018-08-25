@@ -1,0 +1,16 @@
+;	STMicroelectronics Workspace file
+
+[Version]
+Keyword=ST7Workspace-V0.7
+
+[Project0]
+Filename=..\..\stm8af_lin_master\stvd\raisonance\stm8af_lin_master.stp
+Dependencies=
+
+[Project1]
+Filename=..\..\stm8af_lin_slave\stvd\raisonance\stm8af_lin_slave.stp
+Dependencies=
+[Options]
+ActiveProject=stm8af_lin_slave
+ActiveConfig=Debug
+AddSortedElements=0

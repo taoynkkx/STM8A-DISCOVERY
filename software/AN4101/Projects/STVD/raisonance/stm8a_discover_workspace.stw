@@ -1,0 +1,16 @@
+;	STMicroelectronics Workspace file
+
+[Version]
+Keyword=ST7Workspace-V0.7
+
+[Project0]
+Filename=..\..\stm8af_discover\stvd\raisonance\stm8af_discover.stp
+Dependencies=
+
+[Project1]
+Filename=..\..\stm8al_discover\stvd\raisonance\stm8al_discover.stp
+Dependencies=
+[Options]
+ActiveProject=stm8al_discover
+ActiveConfig=Debug
+AddSortedElements=0

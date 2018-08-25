@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>
+  <project>
+    <path>$WS_DIR$\..\STM8AF_LIN_master\EWSTM8\stm8af_lin_master.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\..\STM8AF_LIN_slave\EWSTM8\stm8af_lin_slave.ewp</path>
+  </project>
+  <batchBuild/>
+</workspace>
+
+

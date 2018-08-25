@@ -1,0 +1,87 @@
+/**
+  ******************************************************************************
+  * @file    lin.h
+  * @author  MCD Application Team
+  * @version VX.Y.ZRCx
+  * @date    DD-Month-YYYY
+  * @brief   Header for template.c module
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; COPYRIGHT YYYY STMicroelectronics</center></h2>
+  *
+  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
+  * You may not use this file except in compliance with the License.
+  * You may obtain a copy of the License at:
+  *
+  *        http://www.st.com/software_license_agreement_liberty_v2
+  *
+  * Unless required by applicable law or agreed to in writing, software 
+  * distributed under the License is distributed on an "AS IS" BASIS, 
+  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  *
+  ******************************************************************************
+  */
+
+  /* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __LIN_H
+#define __LIN_H
+
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
+/* Includes ------------------------------------------------------------------*/
+
+/* Exported types ------------------------------------------------------------*/
+
+/* LIN Frame type */
+typedef struct {
+  uint8_t LINFrameIdentifier;
+  uint8_t LINFrameDirection;
+  uint8_t LINFrameDataLength;  
+  uint8_t LINFrameBuffer[9];  
+} LINFrame_Type;
+
+/* Exported constants --------------------------------------------------------*/
+
+/*#define LINFrameMTS0 LINScheduleTable[0].LINScheduleTableFrame
+#define LINFrameSTM0 LINScheduleTable[1].LINScheduleTableFrame
+#define LINFrameMTS1 LINScheduleTable[2].LINScheduleTableFrame
+#define LINFrameSTM1 LINScheduleTable[3].LINScheduleTableFrame*/
+
+/* Exported macros -----------------------------------------------------------*/
+
+/* Exported variables -----------------------------------------------------------*/
+
+extern unsigned char DataReceived; /* Flag to indicate data reception on RX pin (RXNE) */
+extern unsigned char HeaderReceived; /* Flag to indicate Break reception on RX pin (LHDF) */
+extern unsigned char BreakReceived; /* Flag to indicate Break reception on RX pin (LBDF) */
+extern unsigned char IdentifierParityError;
+//extern unsigned char Data; /* Last byte received on RX pin */
+
+/*extern LINFrame_Type LINFrameMTS0;
+extern LINFrame_Type LINFrameMTS1;
+extern LINFrame_Type LINFrameSTM0;
+extern LINFrame_Type LINFrameSTM1;*/
+
+/* Exported functions ------------------------------------------------------- */ 
+
+extern void LIN_Task (void);
+extern void UART3_RIE (void);
+extern void UART3_BDIE (void);
+extern void LIN_MasterConfig(void);
+extern void LIN_SlaveConfig(void);
+extern void InitScheduleTable(void);
+extern uint8_t GetData(uint8_t, uint8_t);
+extern void SetData(uint8_t, uint8_t, uint8_t);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __LIN_H */
+
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

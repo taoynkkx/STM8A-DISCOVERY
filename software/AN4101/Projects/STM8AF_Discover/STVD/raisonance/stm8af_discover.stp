@@ -1,0 +1,524 @@
+;	STMicroelectronics Project file
+
+[Version]
+Keyword=ST7Project
+Number=1.3
+
+[Project]
+Name=stm8af_discover
+Toolset=Raisonance
+
+[Config]
+0=Config.0
+1=Config.1
+
+[Config.0]
+ConfigName=Debug
+Target=$(ProjectSFile).elf
+OutputFolder=Debug
+Debug=$(TargetFName)
+
+[Config.1]
+ConfigName=Release
+Target=stm8af_discover.elf
+OutputFolder=Release
+Debug=$(TargetFName)
+
+[Root]
+ElemType=Project
+PathName=stm8af_discover
+Child=Root.STM8S_StdPeriph_Driver
+Config.0=Root.Config.0
+Config.1=Root.Config.1
+
+[Root.Config.0]
+Settings.0.0=Root.Config.0.Settings.0
+Settings.0.1=Root.Config.0.Settings.1
+Settings.0.2=Root.Config.0.Settings.2
+Settings.0.3=Root.Config.0.Settings.3
+Settings.0.4=Root.Config.0.Settings.4
+Settings.0.5=Root.Config.0.Settings.5
+Settings.0.6=Root.Config.0.Settings.6
+Settings.0.7=Root.Config.0.Settings.7
+Settings.0.8=Root.Config.0.Settings.8
+
+[Root.Config.1]
+Settings.1.0=Root.Config.1.Settings.0
+Settings.1.1=Root.Config.1.Settings.1
+Settings.1.2=Root.Config.1.Settings.2
+Settings.1.3=Root.Config.1.Settings.3
+Settings.1.4=Root.Config.1.Settings.4
+Settings.1.5=Root.Config.1.Settings.5
+Settings.1.6=Root.Config.1.Settings.6
+Settings.1.7=Root.Config.1.Settings.7
+Settings.1.8=Root.Config.1.Settings.8
+
+[Root.Config.0.Settings.0]
+String.6.0=2012,7,17,13,56,27
+String.100.0=ST Assembler Linker
+String.100.1=ST7 Cosmic
+String.100.2=STM7 Cosmic
+String.100.3=STM8 Cosmic
+String.100.4=ST7 Metrowerks V1.1
+String.100.5=Raisonance
+String.101.0=Raisonance
+String.102.0=C:\Program Files\Raisonance\Ride
+String.103.0=bin
+String.104.0=INC\STM8;INC\ST7;INC
+String.105.0=LIB\ST7
+String.106.0=Debug
+String.107.0=$(ProjectSFile).elf
+Int.108=0
+
+[Root.Config.0.Settings.1]
+String.6.0=2012,7,17,13,50,43
+String.100.0=$(TargetFName)
+String.101.0=
+String.103.0=.\;..\..\..\..\libraries\stm8s_stdperiph_driver\inc;..\..\..\..\libraries\stm8s_stdperiph_driver\src;..\..\inc;..\..\src;
+
+[Root.Config.0.Settings.2]
+String.2.0=
+String.6.0=2012,7,17,14,5,12
+String.100.0=STM8AF5288
+
+[Root.Config.0.Settings.3]
+String.2.0=Compiling $(InputFile)...
+String.3.0=rcstm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) WRV(0) STM8(SMALL) DEBUG DGC(data) AUTO -customSizeOpt -CustomOptimOT(7,SIZE) -CustomBasicLstPR($(IntermPath)$(InputName).lst) CD CO SB -customC INITSTATICVAR LAOB PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc) -customUserDEFINE(STM8AF52Ax)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,31,13,49,33
+
+[Root.Config.0.Settings.4]
+String.2.0=Assembling $(InputFile)...
+String.3.0=mastm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) QUIET ERRORPRINT DEBUG
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.0.Settings.5]
+String.2.0=Running Pre-Link step
+String.6.0=2012,7,17,13,50,43
+String.8.0=
+
+[Root.Config.0.Settings.6]
+String.2.0=Running Linker
+String.3.0=rlstm8 -P $(ObjectFiles) TO($(OutputPath)$(TargetSName).aof) $(ToolsetLibOpts) -CustomOutFile[$(ProjectSFile).elf] DEBUGLINES DEBUGPUBLICS DEBUGSYMBOLS -CustomRunHexConv -customMapFile -customMapFilePR($(OutputPath)$(TargetSName).map) 
+String.3.1=omf2elf $(OutputPath)$(TargetSName).aof
+String.4.0=$(OutputPath)$(TargetFName)
+String.5.0=$(OutputPath)$(ProjectSFile).elf $(OutputPath)$(TargetSName).map
+String.6.0=2012,7,17,14,5,12
+String.100.0=DATASTART(0x0) RAMSIZE(0x1800) CODESTART(0x8000) CODESIZE(0x10000) STACKTOP(0x1800) STACKSIZE(0x400) EEPROMSTART(0x4000) EEPROMSIZE(0x800)
+String.101.0=
+String.102.0=
+Int.0=0
+Int.1=0
+
+[Root.Config.0.Settings.7]
+String.2.0=Running Post-Build step
+String.3.0=omf2hex $(OutputPath)$(TargetSName).aof hexext
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.0.Settings.8]
+String.2.0=Performing Custom Build on $(InputFile)
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.1.Settings.0]
+String.6.0=2012,7,17,13,50,43
+String.100.0=ST Assembler Linker
+String.100.1=ST7 Cosmic
+String.100.2=STM7 Cosmic
+String.100.3=STM8 Cosmic
+String.100.4=ST7 Metrowerks V1.1
+String.100.5=Raisonance
+String.101.0=Raisonance
+String.102.0=C:\Program Files\Raisonance\Ride
+String.103.0=bin
+String.104.0=INC\STM8;INC\ST7;INC
+String.105.0=LIB\ST7
+String.106.0=Release
+String.107.0=stm8af_discover.elf
+Int.108=0
+
+[Root.Config.1.Settings.1]
+String.6.0=2012,7,17,13,50,43
+String.100.0=$(TargetFName)
+String.101.0=
+String.103.0=.\;..\..\..\..\libraries\stm8s_stdperiph_driver\inc;..\..\..\..\libraries\stm8s_stdperiph_driver\src;..\..\inc;..\..\src;
+
+[Root.Config.1.Settings.2]
+String.2.0=
+String.6.0=2012,7,17,14,5,12
+String.100.0=STM8AF5288
+
+[Root.Config.1.Settings.3]
+String.2.0=Compiling $(InputFile)...
+String.3.0=rcstm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) DGC(page0) AUTO WRV(0) -CustomBasicLstPR($(IntermPath)$(InputName).lst) CD CO SB -customSizeOpt -CustomOptimOT(7,SIZE) -CustomAutoReloc @$(OutputPath)$(TargetSName).areloc STM8(SMALL) PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.1.Settings.4]
+String.2.0=Assembling $(InputFile)...
+String.3.0=mastm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) QUIET ERRORPRINT
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.1.Settings.5]
+String.2.0=Running Pre-Link step
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.1.Settings.6]
+String.2.0=Running Linker
+String.3.0=rlstm8   $(ObjectFiles) TO($(OutputPath)$(TargetSName).aof) $(ToolsetLibOpts) -CustomOutFile[$(ProjectSFile).elf] -CustomRunHexConv NODEBUGLINES NODEBUGPUBLICS NODEBUGSYMBOLS -CustomCodeCompConv 
+String.3.1=ccompst7_7.exe $(OutputPath)$(TargetSName).aof -O($(OutputPath)$(TargetSName).aof) -AOF -NOHEX -C
+String.3.2=omf2elf $(OutputPath)$(TargetSName).aof
+String.4.0=$(OutputPath)$(TargetFName)
+String.5.0=$(OutputPath)$(TargetSName).map
+String.6.0=2012,7,17,14,5,12
+String.100.0=DATASTART(0x0) RAMSIZE(0x1800) CODESTART(0x8000) CODESIZE(0x10000) STACKTOP(0x1800) STACKSIZE(0x400) EEPROMSTART(0x4000) EEPROMSIZE(0x800)
+String.101.0=
+
+[Root.Config.1.Settings.7]
+String.2.0=Running Post-Build step
+String.3.0=omf2hex $(OutputPath)$(TargetSName).aof hexext
+String.6.0=2012,7,17,13,50,43
+
+[Root.Config.1.Settings.8]
+String.2.0=Performing Custom Build on $(InputFile)
+String.6.0=2012,7,17,13,50,43
+
+[Root.STM8S_StdPeriph_Driver]
+ElemType=Folder
+PathName=STM8S_StdPeriph_Driver
+Child=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc
+Next=Root.User
+Config.0=Root.STM8S_StdPeriph_Driver.Config.0
+Config.1=Root.STM8S_StdPeriph_Driver.Config.1
+
+[Root.STM8S_StdPeriph_Driver.Config.0]
+Settings.0.0=Root.STM8S_StdPeriph_Driver.Config.0.Settings.0
+Settings.0.1=Root.STM8S_StdPeriph_Driver.Config.0.Settings.1
+Settings.0.2=Root.STM8S_StdPeriph_Driver.Config.0.Settings.2
+Settings.0.3=Root.STM8S_StdPeriph_Driver.Config.0.Settings.3
+
+[Root.STM8S_StdPeriph_Driver.Config.1]
+Settings.1.0=Root.STM8S_StdPeriph_Driver.Config.1.Settings.0
+Settings.1.1=Root.STM8S_StdPeriph_Driver.Config.1.Settings.1
+Settings.1.2=Root.STM8S_StdPeriph_Driver.Config.1.Settings.2
+Settings.1.3=Root.STM8S_StdPeriph_Driver.Config.1.Settings.3
+
+[Root.STM8S_StdPeriph_Driver.Config.0.Settings.0]
+String.6.0=2012,7,17,13,51,47
+String.8.0=Debug
+Int.0=0
+Int.1=0
+
+[Root.STM8S_StdPeriph_Driver.Config.0.Settings.1]
+String.2.0=Compiling $(InputFile)...
+String.3.0=rcstm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) WRV(0) STM8(SMALL) DEBUG DGC(data) AUTO -customSizeOpt -CustomOptimOT(7,SIZE) -CustomBasicLstPR($(IntermPath)$(InputName).lst) CD CO SB -customC INITSTATICVAR LAOB PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc) -customUserDEFINE(STM8AF52Ax)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,31,13,49,33
+
+[Root.STM8S_StdPeriph_Driver.Config.0.Settings.2]
+String.2.0=Assembling $(InputFile)...
+String.3.0=mastm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) QUIET ERRORPRINT DEBUG
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.STM8S_StdPeriph_Driver.Config.0.Settings.3]
+String.2.0=Performing Custom Build on $(InputFile)
+String.3.0=
+String.4.0=
+String.5.0=
+String.6.0=2012,7,17,13,50,43
+
+[Root.STM8S_StdPeriph_Driver.Config.1.Settings.0]
+String.6.0=2012,7,17,13,51,47
+String.8.0=Release
+Int.0=0
+Int.1=0
+
+[Root.STM8S_StdPeriph_Driver.Config.1.Settings.1]
+String.2.0=Compiling $(InputFile)...
+String.3.0=rcstm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) DGC(page0) AUTO WRV(0) -CustomBasicLstPR($(IntermPath)$(InputName).lst) CD CO SB -customSizeOpt -CustomOptimOT(7,SIZE) -CustomAutoReloc @$(OutputPath)$(TargetSName).areloc STM8(SMALL) PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.STM8S_StdPeriph_Driver.Config.1.Settings.2]
+String.2.0=Assembling $(InputFile)...
+String.3.0=mastm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) QUIET ERRORPRINT
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.STM8S_StdPeriph_Driver.Config.1.Settings.3]
+String.2.0=Performing Custom Build on $(InputFile)
+String.3.0=
+String.4.0=
+String.5.0=
+String.6.0=2012,7,17,13,50,43
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc]
+ElemType=Folder
+PathName=STM8S_StdPeriph_Driver\inc
+Child=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_tim4.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_tim4.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_tim4.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_spi.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_spi.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_spi.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_gpio.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_gpio.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_gpio.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_exti.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_exti.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_exti.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_clk.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_clk.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_clk.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_can.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_can.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_can.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_adc2.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_adc2.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_adc2.h
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_uart3.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\inc...\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_uart3.h]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\inc\stm8s_uart3.h
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src]
+ElemType=Folder
+PathName=STM8S_StdPeriph_Driver\src
+Child=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_adc2.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_adc2.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_adc2.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_uart3.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_uart3.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_uart3.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_tim4.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_tim4.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_tim4.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_spi.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_spi.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_spi.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_gpio.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_gpio.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_gpio.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_exti.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_exti.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_exti.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_clk.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_clk.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_clk.c
+Next=Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_can.c
+
+[Root.STM8S_StdPeriph_Driver.STM8S_StdPeriph_Driver\src...\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_can.c]
+ElemType=File
+PathName=..\..\..\..\libraries\stm8s_stdperiph_driver\src\stm8s_can.c
+
+[Root.User]
+ElemType=Folder
+PathName=User
+Child=Root.User.User\inc
+Config.0=Root.User.Config.0
+Config.1=Root.User.Config.1
+
+[Root.User.Config.0]
+Settings.0.0=Root.User.Config.0.Settings.0
+Settings.0.1=Root.User.Config.0.Settings.1
+Settings.0.2=Root.User.Config.0.Settings.2
+Settings.0.3=Root.User.Config.0.Settings.3
+
+[Root.User.Config.1]
+Settings.1.0=Root.User.Config.1.Settings.0
+Settings.1.1=Root.User.Config.1.Settings.1
+Settings.1.2=Root.User.Config.1.Settings.2
+Settings.1.3=Root.User.Config.1.Settings.3
+
+[Root.User.Config.0.Settings.0]
+String.6.0=2012,7,17,13,54,3
+String.8.0=Debug
+Int.0=0
+Int.1=0
+
+[Root.User.Config.0.Settings.1]
+String.2.0=Compiling $(InputFile)...
+String.3.0=rcstm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) WRV(0) STM8(SMALL) DEBUG DGC(data) AUTO -customSizeOpt -CustomOptimOT(7,SIZE) -CustomBasicLstPR($(IntermPath)$(InputName).lst) CD CO SB -customC INITSTATICVAR LAOB PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc) -customUserDEFINE(STM8AF52Ax)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,31,13,49,33
+
+[Root.User.Config.0.Settings.2]
+String.2.0=Assembling $(InputFile)...
+String.3.0=mastm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) QUIET ERRORPRINT DEBUG
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.User.Config.0.Settings.3]
+String.2.0=Performing Custom Build on $(InputFile)
+String.3.0=
+String.4.0=
+String.5.0=
+String.6.0=2012,7,17,13,50,43
+
+[Root.User.Config.1.Settings.0]
+String.6.0=2012,7,17,13,54,3
+String.8.0=Release
+Int.0=0
+Int.1=0
+
+[Root.User.Config.1.Settings.1]
+String.2.0=Compiling $(InputFile)...
+String.3.0=rcstm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) DGC(page0) AUTO WRV(0) -CustomBasicLstPR($(IntermPath)$(InputName).lst) CD CO SB -customSizeOpt -CustomOptimOT(7,SIZE) -CustomAutoReloc @$(OutputPath)$(TargetSName).areloc STM8(SMALL) PIN(..\..\..\..\libraries\stm8s_stdperiph_driver\inc) PIN(..\..\inc)
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.User.Config.1.Settings.2]
+String.2.0=Assembling $(InputFile)...
+String.3.0=mastm8 $(InputFile) OBJECT($(IntermPath)$(InputName).$(ObjectExt)) $(ToolsetIncOpts) QUIET ERRORPRINT
+String.4.0=$(IntermPath)$(InputName).$(ObjectExt)
+String.5.0=$(IntermPath)$(InputName).lst
+String.6.0=2012,7,17,13,50,43
+
+[Root.User.Config.1.Settings.3]
+String.2.0=Performing Custom Build on $(InputFile)
+String.3.0=
+String.4.0=
+String.5.0=
+String.6.0=2012,7,17,13,50,43
+
+[Root.User.User\inc]
+ElemType=Folder
+PathName=User\inc
+Child=Root.User.User\inc...\..\inc\stm8s_conf.h
+Next=Root.User.User\src
+
+[Root.User.User\inc...\..\inc\stm8s_conf.h]
+ElemType=File
+PathName=..\..\inc\stm8s_conf.h
+Next=Root.User.User\inc...\..\inc\stm8s.h
+
+[Root.User.User\inc...\..\inc\stm8s.h]
+ElemType=File
+PathName=..\..\inc\stm8s.h
+Next=Root.User.User\inc...\..\inc\main.h
+
+[Root.User.User\inc...\..\inc\main.h]
+ElemType=File
+PathName=..\..\inc\main.h
+Next=Root.User.User\inc...\..\inc\lin.h
+
+[Root.User.User\inc...\..\inc\lin.h]
+ElemType=File
+PathName=..\..\inc\lin.h
+Next=Root.User.User\inc...\..\inc\l99pm62drv_cfg.h
+
+[Root.User.User\inc...\..\inc\l99pm62drv_cfg.h]
+ElemType=File
+PathName=..\..\inc\l99pm62drv_cfg.h
+Next=Root.User.User\inc...\..\inc\l99pm62drv_al.h
+
+[Root.User.User\inc...\..\inc\l99pm62drv_al.h]
+ElemType=File
+PathName=..\..\inc\l99pm62drv_al.h
+Next=Root.User.User\inc...\..\inc\l99pm62drv.h
+
+[Root.User.User\inc...\..\inc\l99pm62drv.h]
+ElemType=File
+PathName=..\..\inc\l99pm62drv.h
+Next=Root.User.User\inc...\..\inc\can.h
+
+[Root.User.User\inc...\..\inc\can.h]
+ElemType=File
+PathName=..\..\inc\can.h
+Next=Root.User.User\inc...\..\inc\appli.h
+
+[Root.User.User\inc...\..\inc\appli.h]
+ElemType=File
+PathName=..\..\inc\appli.h
+Next=Root.User.User\inc...\..\inc\adc.h
+
+[Root.User.User\inc...\..\inc\adc.h]
+ElemType=File
+PathName=..\..\inc\adc.h
+Next=Root.User.User\inc...\..\inc\stm8s_it.h
+
+[Root.User.User\inc...\..\inc\stm8s_it.h]
+ElemType=File
+PathName=..\..\inc\stm8s_it.h
+
+[Root.User.User\src]
+ElemType=Folder
+PathName=User\src
+Child=Root.User.User\src...\..\src\main.c
+
+[Root.User.User\src...\..\src\main.c]
+ElemType=File
+PathName=..\..\src\main.c
+Next=Root.User.User\src...\..\src\lin.c
+
+[Root.User.User\src...\..\src\lin.c]
+ElemType=File
+PathName=..\..\src\lin.c
+Next=Root.User.User\src...\..\src\l99pm62drv.c
+
+[Root.User.User\src...\..\src\l99pm62drv.c]
+ElemType=File
+PathName=..\..\src\l99pm62drv.c
+Next=Root.User.User\src...\..\src\can.c
+
+[Root.User.User\src...\..\src\can.c]
+ElemType=File
+PathName=..\..\src\can.c
+Next=Root.User.User\src...\..\src\appli.c
+
+[Root.User.User\src...\..\src\appli.c]
+ElemType=File
+PathName=..\..\src\appli.c
+Next=Root.User.User\src...\..\src\adc.c
+
+[Root.User.User\src...\..\src\adc.c]
+ElemType=File
+PathName=..\..\src\adc.c
+Next=Root.User.User\src...\..\src\stm8s_it.c
+
+[Root.User.User\src...\..\src\stm8s_it.c]
+ElemType=File
+PathName=..\..\src\stm8s_it.c
